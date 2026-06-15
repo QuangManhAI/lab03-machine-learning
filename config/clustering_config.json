@@ -1,0 +1,20 @@
+{
+  "random_seed": 42,
+  "raw_data_glob": "data/raw/*.csv",
+  "feature_sets": {
+    "behavior_numeric": ["age", "annual_income", "spending_score"],
+    "behavior_plus_gender": ["age", "annual_income", "spending_score", "gender"],
+    "income_spending_only": ["annual_income", "spending_score"],
+    "age_spending_only": ["age", "spending_score"]
+  },
+  "scalers": ["standard", "minmax", "robust"],
+  "kmeans_k_range": [2, 10],
+  "agglomerative_k_range": [2, 10],
+  "dbscan_eps_values": [0.25, 0.35, 0.5, 0.7, 0.9, 1.1, 1.4],
+  "dbscan_min_samples": [5, 10, 20, 35],
+  "selection": {
+    "min_clusters": 3,
+    "max_clusters": 7,
+    "max_noise_rate": 0.35
+  }
+}
