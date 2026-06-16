@@ -52,12 +52,10 @@ def write_customer_report(
         f"- Parameters: `{selected['params']}`",
         f"- Number of clusters: `{int(selected['n_clusters'])}`",
         f"- Silhouette: `{selected['silhouette']:.4f}`",
-        f"- Calinski-Harabasz: `{selected['calinski_harabasz']:.2f}`",
-        f"- Davies-Bouldin: `{selected['davies_bouldin']:.4f}`",
         "",
         "The selected solution balances quantitative quality with interpretability. "
         "The final choice prefers 3 to 7 clusters, strong silhouette performance, "
-        "a lower Davies-Bouldin score, and segments that are readable in income/spending plots.",
+        "and segments that are readable in income/spending plots.",
         "",
         "## Segment Profiles",
         "",
@@ -74,8 +72,6 @@ def write_customer_report(
                 "n_clusters",
                 "noise_rate",
                 "silhouette",
-                "calinski_harabasz",
-                "davies_bouldin",
                 "selected",
             ]
         ].to_markdown(index=False),

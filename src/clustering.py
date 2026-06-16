@@ -10,9 +10,10 @@ import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 from scipy.cluster.hierarchy import dendrogram, linkage
-from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans
+from sklearn.cluster import DBSCAN
+from model_from_scratch import KMeans, HierarchicalClustering
 from sklearn.decomposition import PCA
-from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score, silhouette_score
+from sklearn.metrics import silhouette_score
 
 from utils import save_figure
 
@@ -44,8 +45,6 @@ def compute_metrics(X: np.ndarray, labels: np.ndarray, random_seed: int = 42) ->
             "n_clusters": n_clusters,
             "noise_rate": noise_rate,
             "silhouette": None,
-            "calinski_harabasz": None,
-            "davies_bouldin": None,
         }
     sample_size = min(len(labels_valid), 5000)
     silhouette = silhouette_score(X_valid, labels_valid, sample_size=sample_size, random_state=random_seed)
@@ -53,8 +52,6 @@ def compute_metrics(X: np.ndarray, labels: np.ndarray, random_seed: int = 42) ->
         "n_clusters": n_clusters,
         "noise_rate": noise_rate,
         "silhouette": float(silhouette),
-        "calinski_harabasz": float(calinski_harabasz_score(X_valid, labels_valid)),
-        "davies_bouldin": float(davies_bouldin_score(X_valid, labels_valid)),
     }
 
 
@@ -103,13 +100,13 @@ def run_agglomerative_grid(
 ) -> pd.DataFrame:
     rows = []
     rng = np.random.default_rng(random_seed)
-    linkages = ["ward", "complete", "average"]
+    linkages = ["complete", "average"]
     for (feature_set, scaler), (X, _, _) in matrices.items():
         sample_idx = rng.choice(len(X), size=min(len(X), max_rows), replace=False)
         X_sample = X[sample_idx]
         for linkage_name in linkages:
             for k in k_values:
-                model = AgglomerativeClustering(n_clusters=k, linkage=linkage_name)
+                model = HierarchicalClustering(n_clusters=k, linkage=linkage_name)
                 labels = model.fit_predict(X_sample)
                 metrics = compute_metrics(X_sample, labels, random_seed=random_seed)
                 rows.append(
@@ -169,11 +166,10 @@ def select_best_model(metrics: pd.DataFrame) -> pd.Series:
     candidates["feature_bonus"] = candidates["feature_set"].map(
         {"income_spending_only": 0.06, "behavior_numeric": 0.04, "age_spending_only": 0.02, "behavior_plus_gender": 0.0}
     ).fillna(0.0)
-    candidates["db_penalty"] = candidates["davies_bouldin"].rank(pct=True, ascending=True) * 0.03
-    candidates["selection_score"] = candidates["silhouette"] + candidates["feature_bonus"] - candidates["db_penalty"]
+    candidates["selection_score"] = candidates["silhouette"] + candidates["feature_bonus"]
     return candidates.sort_values(
-        ["selection_score", "silhouette", "davies_bouldin"],
-        ascending=[False, False, True],
+        ["selection_score", "silhouette"],
+        ascending=[False, False],
     ).iloc[0]
 
 
