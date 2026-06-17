@@ -2,7 +2,7 @@
 
 ## Dataset
 
-- Raw file: `/Users/quangmanh/Project/lab03/data/raw/Shopping Mall Customer Segmentation Data .csv`
+- Raw file: `/home/quangmanh/Documents/lab03-machine-learning/data/raw/Shopping Mall Customer Segmentation Data .csv`
 - The dataset contains customer ID, gender, age, annual income, and spending score.
 - Customer ID is preserved for traceability but excluded from clustering.
 - Gender is compared through a one-hot encoded experiment rather than ordinal encoding.
@@ -29,24 +29,23 @@ The selected solution balances quantitative quality with interpretability. The f
 
 ## Model Comparison Snapshot
 
-| algorithm   | feature_set          | scaler   | params                   |   n_clusters |   noise_rate |   silhouette | selected   |
-|:------------|:---------------------|:---------|:-------------------------|-------------:|-------------:|-------------:|:-----------|
-| kmeans      | income_spending_only | minmax   | n_clusters=4             |            4 |       0      |     0.407964 | True       |
-| dbscan      | behavior_numeric     | standard | eps=0.25, min_samples=10 |            3 |       0.982  |     0.834625 | False      |
-| dbscan      | behavior_plus_gender | standard | eps=0.25, min_samples=5  |           54 |       0.833  |     0.628384 | False      |
-| kmeans      | behavior_plus_gender | minmax   | n_clusters=2             |            2 |       0      |     0.57873  | False      |
-| dbscan      | behavior_plus_gender | standard | eps=0.35, min_samples=10 |           19 |       0.8835 |     0.543398 | False      |
-| dbscan      | behavior_plus_gender | standard | eps=0.5, min_samples=20  |           13 |       0.764  |     0.461684 | False      |
-| dbscan      | behavior_numeric     | standard | eps=0.5, min_samples=35  |            5 |       0.792  |     0.433079 | False      |
-| kmeans      | income_spending_only | standard | n_clusters=4             |            4 |       0      |     0.407961 | False      |
-| kmeans      | income_spending_only | robust   | n_clusters=4             |            4 |       0      |     0.407806 | False      |
-| kmeans      | age_spending_only    | minmax   | n_clusters=4             |            4 |       0      |     0.406928 | False      |
-| kmeans      | age_spending_only    | robust   | n_clusters=4             |            4 |       0      |     0.406905 | False      |
-| kmeans      | age_spending_only    | standard | n_clusters=4             |            4 |       0      |     0.406904 | False      |
+| algorithm   | feature_set          | scaler   | params         |   n_clusters |   noise_rate |   silhouette | selected   |
+|:------------|:---------------------|:---------|:---------------|-------------:|-------------:|-------------:|:-----------|
+| kmeans      | income_spending_only | minmax   | n_clusters=4   |            4 |            0 |     0.407964 | True       |
+| kmeans      | behavior_plus_gender | minmax   | n_clusters=2   |            2 |            0 |     0.57873  | False      |
+| kmeans      | income_spending_only | standard | n_clusters=4   |            4 |            0 |     0.407961 | False      |
+| kmeans      | income_spending_only | robust   | n_clusters=4   |            4 |            0 |     0.407806 | False      |
+| kmeans      | age_spending_only    | minmax   | n_clusters=4   |            4 |            0 |     0.406928 | False      |
+| kmeans      | age_spending_only    | robust   | n_clusters=4   |            4 |            0 |     0.406905 | False      |
+| kmeans      | age_spending_only    | standard | n_clusters=4   |            4 |            0 |     0.406904 | False      |
+| kmeans      | behavior_plus_gender | minmax   | n_clusters=3   |            3 |            0 |     0.401314 | False      |
+| gmm         | income_spending_only | standard | n_components=2 |            2 |            0 |     0.353616 | False      |
+| gmm         | income_spending_only | standard | n_components=3 |            3 |            0 |     0.330752 | False      |
+| gmm         | income_spending_only | standard | n_components=4 |            4 |            0 |     0.26605  | False      |
+| gmm         | income_spending_only | standard | n_components=5 |            5 |            0 |     0.254724 | False      |
 
 ## Limitations
 
 - Clusters describe behavioral similarity, not causal drivers of spending.
 - Annual income appears to be measured in full currency units rather than `k$`; interpretation uses relative income bands.
-- Agglomerative clustering and DBSCAN are evaluated on deterministic samples to keep runtime practical for this dataset size.
 - Segment names are business-friendly summaries of cluster averages and should be validated with domain context before campaign launch.

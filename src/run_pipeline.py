@@ -29,11 +29,17 @@ def write_customer_report(
     metrics: pd.DataFrame,
     raw_path: Path,
 ) -> Path:
-    top_metrics = (
-        metrics[metrics["algorithm"].isin(["kmeans", "agglomerative", "dbscan"])]
+    top_kmeans = (
+        metrics[metrics["algorithm"] == "kmeans"]
         .sort_values(["selected", "silhouette"], ascending=[False, False])
-        .head(12)
+        .head(8)
     )
+    top_gmm = (
+        metrics[metrics["algorithm"] == "gmm"]
+        .sort_values(["selected", "silhouette"], ascending=[False, False])
+        .head(4)
+    )
+    top_metrics = pd.concat([top_kmeans, top_gmm], ignore_index=True)
     content = [
         "# Customer Segmentation Report",
         "",
@@ -80,7 +86,6 @@ def write_customer_report(
         "",
         "- Clusters describe behavioral similarity, not causal drivers of spending.",
         "- Annual income appears to be measured in full currency units rather than `k$`; interpretation uses relative income bands.",
-        "- Agglomerative clustering and DBSCAN are evaluated on deterministic samples to keep runtime practical for this dataset size.",
         "- Segment names are business-friendly summaries of cluster averages and should be validated with domain context before campaign launch.",
         "",
     ]
@@ -154,22 +159,14 @@ def main() -> None:
         ("behavior_plus_gender", "standard"),
     ]
     alt_matrices = {key: matrices[key] for key in alt_keys if key in matrices}
-    a_start, a_end = config["agglomerative_k_range"]
-    agglomerative_metrics = clustering.run_agglomerative_grid(
+    gmm_start, gmm_end = config["gmm_k_range"]
+    gmm_metrics = clustering.run_gmm_grid(
         alt_matrices,
-        range(a_start, a_end + 1),
+        range(gmm_start, gmm_end + 1),
         random_seed=RANDOM_SEED,
-        max_rows=1000,
-    )
-    dbscan_metrics = clustering.run_dbscan_grid(
-        alt_matrices,
-        config["dbscan_eps_values"],
-        config["dbscan_min_samples"],
-        random_seed=RANDOM_SEED,
-        max_rows=2000,
     )
 
-    metrics = pd.concat([kmeans_metrics, agglomerative_metrics, dbscan_metrics], ignore_index=True)
+    metrics = pd.concat([kmeans_metrics, gmm_metrics], ignore_index=True)
     selected = clustering.select_best_model(metrics)
     selected_id = int(selected["model_id"])
     metrics.loc[metrics["model_id"] == selected_id, "selected"] = True
@@ -193,7 +190,6 @@ def main() -> None:
     clustering.plot_cluster_scatter(clustered, paths["figures_clustering"], "age", "annual_income")
     X_selected, _, _ = matrices[(selected_result.metadata["feature_set"], selected_result.metadata["scaler"])]
     clustering.plot_pca_projection(X_selected, selected_result.labels, paths["figures_clustering"])
-    clustering.plot_dendrogram_sample(X_selected, paths["figures_clustering"], random_seed=RANDOM_SEED)
 
     if selected_result.metadata["algorithm"] == "kmeans":
         numeric_columns = feature_numeric_columns(selected_result.metadata["feature_set"])

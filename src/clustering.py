@@ -10,8 +10,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 from scipy.cluster.hierarchy import dendrogram, linkage
-from sklearn.cluster import DBSCAN
-from model_from_scratch import KMeans, HierarchicalClustering
+from model_from_scratch import KMeans, GaussianMixtureModel
 from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score
 
@@ -92,69 +91,30 @@ def run_kmeans_grid(
     return pd.DataFrame(rows), models
 
 
-def run_agglomerative_grid(
+def run_gmm_grid(
     matrices: dict[tuple[str, str], tuple[np.ndarray, list[str], Any]],
     k_values: range,
     random_seed: int = 42,
-    max_rows: int = 3000,
 ) -> pd.DataFrame:
     rows = []
-    rng = np.random.default_rng(random_seed)
-    linkages = ["complete", "average"]
     for (feature_set, scaler), (X, _, _) in matrices.items():
-        sample_idx = rng.choice(len(X), size=min(len(X), max_rows), replace=False)
-        X_sample = X[sample_idx]
-        for linkage_name in linkages:
-            for k in k_values:
-                model = HierarchicalClustering(n_clusters=k, linkage=linkage_name)
-                labels = model.fit_predict(X_sample)
-                metrics = compute_metrics(X_sample, labels, random_seed=random_seed)
-                rows.append(
-                    {
-                        "model_id": None,
-                        "algorithm": "agglomerative",
-                        "feature_set": feature_set,
-                        "scaler": scaler,
-                        "params": f"n_clusters={k}, linkage={linkage_name}",
-                        "sample_size": len(X_sample),
-                        "inertia": None,
-                        "selected": False,
-                        **metrics,
-                    }
-                )
-    return pd.DataFrame(rows)
-
-
-def run_dbscan_grid(
-    matrices: dict[tuple[str, str], tuple[np.ndarray, list[str], Any]],
-    eps_values: list[float],
-    min_samples_values: list[int],
-    random_seed: int = 42,
-    max_rows: int = 5000,
-) -> pd.DataFrame:
-    rows = []
-    rng = np.random.default_rng(random_seed)
-    for (feature_set, scaler), (X, _, _) in matrices.items():
-        sample_idx = rng.choice(len(X), size=min(len(X), max_rows), replace=False)
-        X_sample = X[sample_idx]
-        for eps in eps_values:
-            for min_samples in min_samples_values:
-                model = DBSCAN(eps=eps, min_samples=min_samples)
-                labels = model.fit_predict(X_sample)
-                metrics = compute_metrics(X_sample, labels, random_seed=random_seed)
-                rows.append(
-                    {
-                        "model_id": None,
-                        "algorithm": "dbscan",
-                        "feature_set": feature_set,
-                        "scaler": scaler,
-                        "params": f"eps={eps}, min_samples={min_samples}",
-                        "sample_size": len(X_sample),
-                        "inertia": None,
-                        "selected": False,
-                        **metrics,
-                    }
-                )
+        for k in k_values:
+            model = GaussianMixtureModel(n_components=k, random_state=random_seed)
+            labels = model.fit_predict(X)
+            metrics = compute_metrics(X, labels, random_seed=random_seed)
+            rows.append(
+                {
+                    "model_id": None,
+                    "algorithm": "gmm",
+                    "feature_set": feature_set,
+                    "scaler": scaler,
+                    "params": f"n_components={k}",
+                    "sample_size": len(X),
+                    "inertia": None,
+                    "selected": False,
+                    **metrics,
+                }
+            )
     return pd.DataFrame(rows)
 
 
