@@ -178,6 +178,13 @@ def main() -> None:
     utils.save_table(clustered, paths["processed"] / "clustering_results.csv")
     utils.save_table(profiles, paths["metrics"] / "segment_profiles.csv")
 
+    centers = None
+    if selected_result.metadata["algorithm"] == "kmeans":
+        numeric_columns = feature_numeric_columns(selected_result.metadata["feature_set"])
+        centers = preprocess.inverse_numeric_centers(selected_result.estimator.cluster_centers_, selected_result.transformer, numeric_columns)
+        utils.save_table(centers.reset_index(names="cluster"), paths["metrics"] / "cluster_centers.csv")
+        clustering.plot_cluster_centers(centers, paths["figures_clustering"])
+
     utils.status("Saving final clustering figures and model")
     clustering.plot_kmeans_diagnostics(
         metrics,
@@ -185,17 +192,11 @@ def main() -> None:
         selected_result.metadata["feature_set"],
         selected_result.metadata["scaler"],
     )
-    clustering.plot_cluster_scatter(clustered, paths["figures_clustering"], "annual_income", "spending_score")
+    clustering.plot_cluster_scatter(clustered, paths["figures_clustering"], "annual_income", "spending_score", centers=centers)
     clustering.plot_cluster_scatter(clustered, paths["figures_clustering"], "age", "spending_score")
     clustering.plot_cluster_scatter(clustered, paths["figures_clustering"], "age", "annual_income")
     X_selected, _, _ = matrices[(selected_result.metadata["feature_set"], selected_result.metadata["scaler"])]
     clustering.plot_pca_projection(X_selected, selected_result.labels, paths["figures_clustering"])
-
-    if selected_result.metadata["algorithm"] == "kmeans":
-        numeric_columns = feature_numeric_columns(selected_result.metadata["feature_set"])
-        centers = preprocess.inverse_numeric_centers(selected_result.estimator.cluster_centers_, selected_result.transformer, numeric_columns)
-        utils.save_table(centers.reset_index(names="cluster"), paths["metrics"] / "cluster_centers.csv")
-        clustering.plot_cluster_centers(centers, paths["figures_clustering"])
 
     clustering.save_final_model(selected_result, paths["models"] / "best_cluster_model.joblib")
     write_customer_report(paths["reports"] / "customer_segmentation_report.md", selected, profiles, metrics, raw_path)

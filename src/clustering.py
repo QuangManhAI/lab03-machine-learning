@@ -237,7 +237,7 @@ def plot_kmeans_diagnostics(metrics: pd.DataFrame, output_dir: Path, feature_set
     return paths
 
 
-def plot_cluster_scatter(clustered: pd.DataFrame, output_dir: Path, x_col: str, y_col: str) -> Path:
+def plot_cluster_scatter(clustered: pd.DataFrame, output_dir: Path, x_col: str, y_col: str, centers: pd.DataFrame = None) -> Path:
     fig, ax = plt.subplots(figsize=(8, 5.5))
     sns.scatterplot(
         data=clustered,
@@ -250,6 +250,21 @@ def plot_cluster_scatter(clustered: pd.DataFrame, output_dir: Path, x_col: str, 
         linewidth=0,
         ax=ax,
     )
+    
+    # Plot centroids if provided and columns match
+    if centers is not None and x_col in centers.columns and y_col in centers.columns:
+        ax.scatter(
+            centers[x_col],
+            centers[y_col],
+            c='red',
+            marker='X',
+            s=150,
+            label='Centroids',
+            edgecolors='black',
+            zorder=10
+        )
+        ax.legend()
+        
     ax.set_title(f"Final Clusters: {x_col.replace('_', ' ').title()} vs {y_col.replace('_', ' ').title()}")
     ax.set_xlabel(x_col.replace("_", " ").title())
     ax.set_ylabel(y_col.replace("_", " ").title())
