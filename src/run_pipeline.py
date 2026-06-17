@@ -159,14 +159,14 @@ def main() -> None:
         alt_matrices,
         range(a_start, a_end + 1),
         random_seed=RANDOM_SEED,
-        max_rows=2500,
+        max_rows=1000,
     )
     dbscan_metrics = clustering.run_dbscan_grid(
         alt_matrices,
         config["dbscan_eps_values"],
         config["dbscan_min_samples"],
         random_seed=RANDOM_SEED,
-        max_rows=3500,
+        max_rows=2000,
     )
 
     metrics = pd.concat([kmeans_metrics, agglomerative_metrics, dbscan_metrics], ignore_index=True)

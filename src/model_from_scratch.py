@@ -206,14 +206,9 @@ class HierarchicalClustering:
         active_clusters = set(range(n_samples))
         
         for _ in range(n_samples - self.n_clusters):
-            active_list = list(active_clusters)
-            sub_matrix = dist_matrix[np.ix_(active_list, active_list)]
-            
-            min_idx = np.argmin(sub_matrix)
-            r_idx, c_idx = np.unravel_index(min_idx, sub_matrix.shape)
-            
-            u = active_list[r_idx]
-            v = active_list[c_idx]
+            # Find the minimum distance in the entire matrix
+            min_idx = np.argmin(dist_matrix)
+            u, v = np.unravel_index(min_idx, dist_matrix.shape)
             
             if u > v:
                 u, v = v, u
@@ -221,20 +216,24 @@ class HierarchicalClustering:
             size_u = sizes[u]
             size_v = sizes[v]
             
-            # Update distances to remaining active clusters via Lance-Williams
-            for k in active_clusters:
-                if k != u and k != v:
-                    if self.linkage == 'single':
-                        new_d = min(dist_matrix[u, k], dist_matrix[v, k])
-                    elif self.linkage == 'complete':
-                        new_d = max(dist_matrix[u, k], dist_matrix[v, k])
-                    elif self.linkage == 'average':
-                        new_d = (dist_matrix[u, k] * size_u + dist_matrix[v, k] * size_v) / (size_u + size_v)
-                    else:
-                        raise ValueError(f"Unsupported linkage: {self.linkage}")
-                    dist_matrix[u, k] = dist_matrix[k, u] = new_d
-                    
+            # Update distances to all other clusters using Lance-Williams
+            if self.linkage == 'single':
+                new_d = np.minimum(dist_matrix[u], dist_matrix[v])
+            elif self.linkage == 'complete':
+                new_d = np.maximum(dist_matrix[u], dist_matrix[v])
+            elif self.linkage == 'average':
+                new_d = (dist_matrix[u] * size_u + dist_matrix[v] * size_v) / (size_u + size_v)
+            else:
+                raise ValueError(f"Unsupported linkage: {self.linkage}")
+                
+            dist_matrix[u, :] = new_d
+            dist_matrix[:, u] = new_d
             dist_matrix[u, u] = np.inf
+            
+            # Deactivate cluster v
+            dist_matrix[v, :] = np.inf
+            dist_matrix[:, v] = np.inf
+            
             active_clusters.remove(v)
             sizes[u] += size_v
             members[u].extend(members[v])

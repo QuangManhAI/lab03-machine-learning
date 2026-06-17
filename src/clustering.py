@@ -65,7 +65,7 @@ def run_kmeans_grid(
     model_id = 0
     for (feature_set, scaler), (X, feature_names, transformer) in matrices.items():
         for k in k_values:
-            model = KMeans(n_clusters=k, random_state=random_seed, n_init=20)
+            model = KMeans(n_clusters=k, random_state=random_seed, n_init=5)
             labels = model.fit_predict(X)
             metrics = compute_metrics(X, labels, random_seed=random_seed)
             rows.append(
