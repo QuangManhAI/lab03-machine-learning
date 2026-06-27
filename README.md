@@ -1,5 +1,6 @@
 # Lab 03 - Customer Segmentation
 - data: "https://www.kaggle.com/datasets/zubairmustafa/shopping-mall-customer-segmentation-data"
+- data v2: "https://www.kaggle.com/datasets/fares279/customers-transactions"
 This project clusters retail customers into business-friendly segments using age, annual income, spending score, and optional gender features. It follows the implementation guide in `agents/codex.md`.
 
 ## Dataset
