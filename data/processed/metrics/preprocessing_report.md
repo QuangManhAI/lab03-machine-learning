@@ -1,7 +1,7 @@
 # Preprocessing Report
 
-- Raw shape: `15079` rows x `5` columns
-- Clean shape: `15079` rows x `5` columns
+- Raw shape: `2200` rows x `5` columns
+- Clean shape: `2200` rows x `5` columns
 - Raw data was left unchanged under `data/raw/`.
 - Customer IDs were preserved but excluded from clustering features.
 - Gender was kept categorical and only one-hot encoded for the gender experiment.
@@ -33,8 +33,8 @@
 
 ## Outlier Summary
 
-| column         |    q1 |     q3 |   iqr |   iqr_lower |   iqr_upper |   iqr_outliers |   zscore_outliers |
-|:---------------|------:|-------:|------:|------------:|------------:|---------------:|------------------:|
-| age            |    36 |     72 |    36 |       -18   |       126   |              0 |                 0 |
-| annual_income  | 64141 | 155008 | 90867 |    -72159.5 |    291308   |              0 |                 0 |
-| spending_score |    26 |     75 |    49 |       -47.5 |       148.5 |              0 |                 0 |
+| column         |    q1 |    q3 |   iqr |   iqr_lower |   iqr_upper |   iqr_outliers |   zscore_outliers |
+|:---------------|------:|------:|------:|------------:|------------:|---------------:|------------------:|
+| age            |    30 |    44 |    14 |         9   |        65   |             88 |                29 |
+| annual_income  | 31875 | 79525 | 47650 |    -39600   |    151000   |              0 |                 1 |
+| spending_score |    26 |    65 |    39 |       -32.5 |       123.5 |              0 |                 0 |
