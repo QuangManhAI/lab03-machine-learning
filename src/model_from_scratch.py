@@ -1,9 +1,19 @@
 import numpy as np
 import warnings
+from typing import Literal
+
+def _check_random_state(seed):
+    if seed is None or isinstance(seed, (int, np.integer)):
+        return np.random.default_rng(seed)
+    if isinstance(seed, np.random.Generator):
+        return seed
+    if isinstance(seed, np.random.RandomState):
+        return np.random.default_rng(seed.randint(0, np.iinfo(np.int32).max))
+    return np.random.default_rng(seed)
 
 class KMeans:
     """K-Means clustering from scratch."""
-    def __init__(self, n_clusters=8, init='random', max_iter=300, tol=1e-4, random_state=None, n_init=10):
+    def __init__(self, n_clusters=8, init: Literal['random', 'k-means++'] = 'random', max_iter=300, tol=1e-4, random_state=None, n_init=10):
         self.n_clusters = n_clusters
         self.init = init
         self.max_iter = max_iter
@@ -27,12 +37,24 @@ class KMeans:
         best_centers = None
         best_labels = None
         
-        rng = np.random.default_rng(self.random_state)
+        rng = _check_random_state(self.random_state)
         
         for _ in range(self.n_init):
-            if self.init == 'random':
-                indices = rng.choice(n_samples, self.n_clusters, replace=False)
-                centers = X[indices].copy()
+            if self.init == 'k-means++':
+                centers = np.zeros((self.n_clusters, n_features))
+                first_idx = rng.choice(n_samples)
+                centers[0] = X[first_idx]
+                
+                for c_idx in range(1, self.n_clusters):
+                    distances = np.linalg.norm(X[:, np.newaxis, :] - centers[np.newaxis, :c_idx, :], axis=2)
+                    min_dist_sq = np.min(distances, axis=1) ** 2
+                    sum_dist_sq = np.sum(min_dist_sq)
+                    if sum_dist_sq == 0:
+                        probs = np.ones(n_samples) / n_samples
+                    else:
+                        probs = min_dist_sq / sum_dist_sq
+                    next_idx = rng.choice(n_samples, p=probs)
+                    centers[c_idx] = X[next_idx]
             else:
                 indices = rng.choice(n_samples, self.n_clusters, replace=False)
                 centers = X[indices].copy()
@@ -80,6 +102,8 @@ class KMeans:
         return self.labels_
 
     def predict(self, X):
+        if self.cluster_centers_ is None:
+            raise ValueError("KMeans instance is not fitted yet.")
         X = np.asarray(X, dtype=float)
         distances = np.linalg.norm(X[:, np.newaxis, :] - self.cluster_centers_[np.newaxis, :, :], axis=2)
         return np.argmin(distances, axis=1)
@@ -87,12 +111,13 @@ class KMeans:
 
 class GaussianMixtureModel:
     """Gaussian Mixture Model clustering from scratch using EM algorithm."""
-    def __init__(self, n_components=4, max_iter=100, tol=1e-4, random_state=None, reg_covar=1e-6):
+    def __init__(self, n_components=4, max_iter=100, tol=1e-4, random_state=None, reg_covar=1e-6, init_params: Literal['kmeans', 'random'] = 'kmeans'):
         self.n_components = n_components
         self.max_iter = max_iter
         self.tol = tol
         self.random_state = random_state
         self.reg_covar = reg_covar
+        self.init_params = init_params
         
         self.weights_ = None
         self.means_ = None
@@ -106,28 +131,69 @@ class GaussianMixtureModel:
             inv_cov = np.linalg.inv(cov_reg)
             det_cov = np.linalg.det(cov_reg)
         except np.linalg.LinAlgError:
-            cov_reg += np.eye(n_features) * 1e-4
-            inv_cov = np.linalg.inv(cov_reg)
-            det_cov = np.linalg.det(cov_reg)
-            
-        if det_cov <= 0:
+            try:
+                cov_reg_fallback = cov_reg + np.eye(n_features) * 1e-4
+                inv_cov = np.linalg.inv(cov_reg_fallback)
+                det_cov = np.linalg.det(cov_reg_fallback)
+            except np.linalg.LinAlgError:
+                inv_cov = np.eye(n_features)
+                det_cov = 1e-30
+                
+        if np.isnan(det_cov) or np.isinf(det_cov) or det_cov <= 1e-30:
             det_cov = 1e-30
+            
+        if not np.isfinite(inv_cov).all():
+            inv_cov = np.eye(n_features)
             
         norm_const = 1.0 / np.sqrt(((2 * np.pi) ** n_features) * det_cov)
         diff = X - mean
         exponent = -0.5 * np.sum(diff @ inv_cov * diff, axis=1)
+        exponent = np.clip(exponent, -700, 700)
         return norm_const * np.exp(exponent)
 
     def fit(self, X):
         X = np.asarray(X, dtype=float)
         n_samples, n_features = X.shape
         
-        rng = np.random.default_rng(self.random_state)
-        indices = rng.choice(n_samples, self.n_components, replace=False)
-        self.means_ = X[indices].copy()
-        self.covariances_ = np.array([np.eye(n_features) for _ in range(self.n_components)])
-        self.weights_ = np.ones(self.n_components) / self.n_components
+        if n_samples < self.n_components:
+            raise ValueError(f"n_samples={n_samples} must be >= n_components={self.n_components}")
+            
+        rng = _check_random_state(self.random_state)
         
+        if self.init_params == 'kmeans':
+            try:
+                kmeans = KMeans(n_clusters=self.n_components, random_state=self.random_state, n_init=1, init='k-means++')
+                kmeans.fit(X)
+                if kmeans.cluster_centers_ is None:
+                    raise ValueError("KMeans failed to fit centers.")
+                self.means_ = kmeans.cluster_centers_.copy()
+                labels = kmeans.labels_
+                
+                self.weights_ = np.zeros(self.n_components)
+                self.covariances_ = np.zeros((self.n_components, n_features, n_features))
+                for k in range(self.n_components):
+                    members = X[labels == k]
+                    if len(members) > 0:
+                        self.weights_[k] = len(members) / n_samples
+                        diff = members - self.means_[k]
+                        self.covariances_[k] = (diff.T @ diff) / len(members)
+                    else:
+                        self.weights_[k] = 1.0 / self.n_components
+                        self.covariances_[k] = np.eye(n_features)
+                
+                self.weights_ /= np.sum(self.weights_)
+            except Exception:
+                self.init_params = 'random'
+                
+        if self.init_params == 'random':
+            indices = rng.choice(n_samples, self.n_components, replace=False)
+            self.means_ = X[indices].copy()
+            self.covariances_ = np.array([np.eye(n_features) for _ in range(self.n_components)])
+            self.weights_ = np.ones(self.n_components) / self.n_components
+            
+        if self.means_ is None or self.covariances_ is None or self.weights_ is None:
+            raise ValueError("Initialization failed, parameters are None.")
+            
         log_likelihood_old = -np.inf
         
         for iteration in range(self.max_iter):
@@ -141,12 +207,14 @@ class GaussianMixtureModel:
             responsibilities = weighted_pdfs / sum_weighted_pdfs
             
             log_likelihood = float(np.sum(np.log(np.maximum(np.sum(weighted_pdfs, axis=1), 1e-30))))
+            if np.isnan(log_likelihood) or np.isinf(log_likelihood):
+                break
             if np.abs(log_likelihood - log_likelihood_old) < self.tol:
                 break
             log_likelihood_old = log_likelihood
             
             Nk = np.sum(responsibilities, axis=0)
-            Nk_safe = np.where(Nk == 0, 1e-10, Nk)
+            Nk_safe = np.maximum(Nk, 1e-10)
             
             self.weights_ = Nk / n_samples
             
@@ -166,6 +234,8 @@ class GaussianMixtureModel:
         return self.labels_
 
     def predict(self, X):
+        if self.means_ is None or self.covariances_ is None or self.weights_ is None:
+            raise ValueError("GaussianMixtureModel instance is not fitted yet.")
         X = np.asarray(X, dtype=float)
         n_samples = X.shape[0]
         pdfs = np.zeros((n_samples, self.n_components))
@@ -177,7 +247,7 @@ class GaussianMixtureModel:
 # Library wrappers for verification and testing
 class KMeansLibrary:
     """Wrapper around sklearn.cluster.KMeans."""
-    def __init__(self, n_clusters=8, init='random', max_iter=300, tol=1e-4, random_state=None, n_init=10):
+    def __init__(self, n_clusters=8, init: Literal['random', 'k-means++'] = 'random', max_iter=300, tol=1e-4, random_state=None, n_init=10):
         from sklearn.cluster import KMeans as SKKMeans
         self.estimator = SKKMeans(
             n_clusters=n_clusters,
