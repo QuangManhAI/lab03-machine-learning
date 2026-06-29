@@ -2,7 +2,7 @@
 
 ## Dataset
 
-- Raw file: `/home/quangmanh/Documents/lab03-machine-learning/data/raw/Shopping Mall Customer Segmentation Data .csv`
+- Raw file: `/Users/quangmanh/Project/lab03/data/raw/Shopping Mall Customer Segmentation Data .csv`
 - The dataset contains customer ID, gender, age, annual income, and spending score.
 - Customer ID is preserved for traceability but excluded from clustering.
 - Gender is compared through a one-hot encoded experiment rather than ordinal encoding.
@@ -39,10 +39,10 @@ The selected solution balances quantitative quality with interpretability. The f
 | kmeans      | age_spending_only    | robust   | n_clusters=4   |            4 |            0 |     0.406905 | False      |
 | kmeans      | age_spending_only    | standard | n_clusters=4   |            4 |            0 |     0.406904 | False      |
 | kmeans      | behavior_plus_gender | minmax   | n_clusters=3   |            3 |            0 |     0.401314 | False      |
-| gmm         | income_spending_only | standard | n_components=2 |            2 |            0 |     0.353616 | False      |
-| gmm         | income_spending_only | standard | n_components=3 |            3 |            0 |     0.330752 | False      |
-| gmm         | income_spending_only | standard | n_components=4 |            4 |            0 |     0.26605  | False      |
-| gmm         | income_spending_only | standard | n_components=5 |            5 |            0 |     0.254724 | False      |
+| gmm         | income_spending_only | standard | n_components=4 |            4 |            0 |     0.403262 | False      |
+| gmm         | income_spending_only | standard | n_components=2 |            2 |            0 |     0.35471  | False      |
+| gmm         | income_spending_only | standard | n_components=3 |            3 |            0 |     0.340498 | False      |
+| gmm         | income_spending_only | standard | n_components=5 |            5 |            0 |     0.284014 | False      |
 
 ## Limitations
 

@@ -2,6 +2,8 @@ Input: -
 Output: -
 To do: - 
 
+- https://www.kaggle.com/datasets/zubairmustafa/shopping-mall-customer-segmentation-data
+
 *notebook structure*: create and optimize notebook **lab03.ipynb** based on codex.md
 struct of notebook: 
 - cell md: Overview all steps in notebook. Draw a table containing: Step Number, Step Name, Description, Python Modules Used, and Saved Outputs/Metrics.
