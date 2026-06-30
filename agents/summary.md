@@ -1,7 +1,10 @@
 ### 1. Tổng quan Dự án
 Notebook thực hiện bài toán **Phân khúc khách hàng (Customer Segmentation)** trên tập dữ liệu mua sắm trung tâm thương mại (`datav2.csv`) gồm **2.200 khách hàng** với 5 trường thông tin: `Customer ID`, `Age`, `Gender`, `Annual Income`, `Spending Score`.
 
----
+* **Dữ liệu từ Kaggle
+* [Kaggle Dataset 1: Customer Segmentation Tutorial in Python](https://www.kaggle.com/datasets/vjchoudhary7/customer-segmentation-tutorial-in-python) (Đóng góp 200 dòng).
+* [Kaggle Dataset 2: Mall Customer Segmentation Dataset](https://www.kaggle.com/datasets/hosseinbadrnezhad/mall-customer-segmentation-dataset) (Đóng góp 1000 dòng).
+* [Kaggle Dataset 3: Mall-Customer-Segmentation-Combined](https://www.kaggle.com/datasets/datascienceexplore/mall-customer-segmentation-combined) (Đóng góp 1000 dòng).
 
 ### 2. Chi tiết các bước trong Notebook
 
