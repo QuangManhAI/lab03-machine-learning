@@ -40,7 +40,7 @@ Before writing a single sentence, ask yourself a chain of questions for each ste
 
 ### Language & Tone
 
-- Write in **English** (unless otherwise specified).
+- **Always write in English.** Every cell, every sentence — unless the user explicitly requests another language. A mixed-language notebook looks unprofessional and confuses future readers.
 - Use a technical but natural voice — like explaining to a peer, not teaching a beginner.
 - Do **not** use explicit Wh- headings ("What:", "Why:", "How:", "When:"). The answers should be woven into the paragraph flow.
 
@@ -59,6 +59,28 @@ Before writing a single sentence, ask yourself a chain of questions for each ste
 2. **Brief method** — How it's done (1–2 sentences).
 3. **Interpretation guide** — How to read the charts/tables. What patterns to look for.
 4. **Expectation** — Specific numbers or patterns expected, and what they imply.
+
+### Mandatory First Cells
+
+Every notebook **must** begin with two markdown cells before any code:
+
+#### Cell 0 — Project Title & Workflow Overview
+
+A `# H1` title cell that opens with a paragraph explaining what the notebook achieves and why it matters. Followed by a **workflow table** listing every step with Step Number, Step Name, Description, Python Modules Used, and Saved Outputs/Metrics. End with an **expectation paragraph** giving a high-level preview of results (e.g., expected silhouette range, elbow K).
+
+#### Cell 1 — Step 0: Define Problem
+
+A `## Step 0 — Define Problem` cell that frames the business problem **before any code runs**. Use this structure:
+
+1. **Opening** — State what problem this notebook solves (e.g., "unsupervised learning problem that groups customers with similar behavior into clusters"). State that the goal is not to optimize a single metric but to produce interpretable, actionable groups.
+
+2. **Dataset schema table** — List every input attribute: name, description, and type. Note which columns are excluded from modeling (e.g., IDs).
+
+3. **Business questions** — Numbered list of 3–5 concrete questions the analysis will answer (e.g., "How many distinct groups exist?", "What marketing strategy fits each group?").
+
+4. **Success criteria** — Bold "**Success criteria:**" followed by measurable thresholds (e.g., silhouette > 0.30, segment size > 5%, semantic label assignable).
+
+All content must be in **English**. The overview table in Cell 0 must reference Step 0 so the numbering is consistent.
 
 ### Formatting
 
