@@ -201,6 +201,21 @@ def main() -> None:
     clustering.save_final_model(selected_result, paths["models"] / "best_cluster_model.joblib")
     write_customer_report(paths["reports"] / "customer_segmentation_report.md", selected, profiles, metrics, raw_path)
 
+    cluster_distribution = clustered["cluster"].value_counts().to_dict()
+    utils.write_training_log(
+        root=PROJECT_ROOT,
+        config=config,
+        n_samples=len(clean_df),
+        selected_algorithm=selected["algorithm"],
+        selected_feature_set=selected["feature_set"],
+        selected_scaler=selected["scaler"],
+        selected_params=selected["params"],
+        n_clusters=int(selected["n_clusters"]),
+        silhouette=round(float(selected["silhouette"]), 4),
+        n_models_evaluated=len(metrics),
+        cluster_distribution=cluster_distribution,
+    )
+
     utils.status("Pipeline complete")
     print(
         {
