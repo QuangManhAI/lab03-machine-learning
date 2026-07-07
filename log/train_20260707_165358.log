@@ -1,0 +1,41 @@
+=== Training Log ===
+Timestamp: 2026-07-07 16:53:58
+Project: Customer Segmentation (lab03)
+
+--- Pipeline Summary ---
+Total samples: 2200
+Features: age, annual_income, spending_score
+Features excluded: customer_id (identifier), gender (not in final set)
+
+--- Preprocessing ---
+Scaler: RobustScaler
+Feature set: income_spending_only
+Missing values: 0
+Outliers (IQR): 0
+Duplicates: 0
+
+--- Model Selection ---
+Algorithm: K-Means
+Grid search: k=2..10, 4 feature sets, 3 scalers = 108 configurations
+Best params: n_clusters=5, scaler=robust, feature_set=income_spending_only
+Silhouette score: 0.4702
+Selection criteria: silhouette + feature_bonus (income_spending_only +0.06)
+
+--- Final Model ---
+Algorithm: K-Means (from scratch)
+Number of clusters: 5
+Initialization: k-means++
+Max iterations: 300
+Tolerance: 1e-4
+n_init: 5
+
+--- Cluster Distribution ---
+Cluster 0 (High income, low spending):      497 (22.6%)
+Cluster 1 (Low income, low spending):        258 (11.7%)
+Cluster 2 (Moderate income, moderate spending): 712 (32.4%)
+Cluster 3 (High income, high spending):      242 (11.0%)
+Cluster 4 (Low income, high spending):       491 (22.3%)
+
+--- Output ---
+HTML report: customer_segmentation_report.html
+Figures: reports/figures/clustering/ (12 files), reports/figures/before_process/ (10 files)

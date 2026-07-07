@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Segmentation Report</title>
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --accent: #3498db;
+      --accent-light: #ebf5fb;
+      --bg: #f8f9fa;
+      --card: #ffffff;
+      --text: #2c3e50;
+      --muted: #7f8c8d;
+      --border: #dee2e6;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--bg);
+    }
+    .header {
+      background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+      color: #fff;
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    .header h1 { font-size: 2.2rem; margin-bottom: 0.5rem; }
+    .header p { font-size: 1.1rem; opacity: 0.9; margin-bottom: 0.5rem; }
+    .header .meta { font-size: 0.85rem; opacity: 0.7; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .toc {
+      background: var(--card);
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.8rem;
+    }
+    .toc h2 { font-size: 1.25rem; margin-bottom: 0.8rem; color: var(--primary); }
+    .toc ol { columns: 2 280px; column-gap: 2rem; padding-left: 1.2rem; }
+    .toc li { margin-bottom: 0.3rem; }
+    .toc a { color: var(--accent); text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    .section {
+      background: var(--card);
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 1.8rem;
+      overflow: hidden;
+    }
+    .section-header {
+      background: var(--accent-light);
+      padding: 1.2rem 2rem;
+      border-bottom: 2px solid var(--accent);
+    }
+    .section-header h2 { font-size: 1.25rem; }
+    .section-header .step { color: var(--accent); font-weight: 700; margin-right: 0.3rem; }
+    .section-body { padding: 1.5rem 2rem 2rem; }
+    .section-body p { margin-bottom: 0.8rem; }
+    .section-body p:last-child { margin-bottom: 0; }
+    .figure {
+      margin: 1.5rem 0 0.5rem;
+      text-align: center;
+    }
+    .figure img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    }
+    .figure .caption {
+      font-size: 0.85rem;
+      font-style: italic;
+      color: var(--muted);
+      margin-top: 0.4rem;
+    }
+    .insight {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 0.8rem 1.2rem;
+      border-radius: 0 6px 6px 0;
+      margin: 0.8rem 0;
+      font-size: 0.92rem;
+    }
+    .insight strong { color: #856404; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 0.8rem 0; }
+    th, td { padding: 0.5rem 0.8rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: var(--accent-light); font-weight: 600; }
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    @media (max-width: 700px) {
+      .two-col { grid-template-columns: 1fr; }
+      .toc ol { columns: 1; }
+      .header h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Customer Segmentation Report</h1>
+  <p>K-Means clustering analysis of customer income and spending behavior to identify actionable market segments.</p>
+  <div class="meta">Dataset: datav2.csv &bull; 2,200 customers &bull; 5 features &bull; Generated 2026-07-07</div>
+</div>
+
+<div class="container">
+
+<div class="toc">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#s1">Dataset Overview</a></li>
+    <li><a href="#s2">Exploratory Data Analysis</a></li>
+    <li><a href="#s3">Data Preprocessing</a></li>
+    <li><a href="#s4">Model Selection</a></li>
+    <li><a href="#s5">Final Model</a></li>
+    <li><a href="#s6">Cluster Profiles</a></li>
+    <li><a href="#s7">Business Recommendations</a></li>
+  </ol>
+</div>
+
+<div class="section" id="s1">
+  <div class="section-header">
+    <h2><span class="step">1.</span> Dataset Overview</h2>
+  </div>
+  <div class="section-body">
+    <p>The dataset contains <strong>2,200 customer records</strong> with five attributes: customer ID (excluded from clustering), gender, age, annual income, and spending score. The goal is to uncover natural customer segments based on behavioral and demographic patterns.</p>
+    <table>
+      <thead>
+        <tr><th>Feature</th><th>Count</th><th>Mean</th><th>Std</th><th>Min</th><th>Max</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Age</td><td>2,200</td><td>38.16</td><td>12.17</td><td>18</td><td>80</td></tr>
+        <tr><td>Annual Income</td><td>2,200</td><td>56,143</td><td>28,410</td><td>10,000</td><td>144,100</td></tr>
+        <tr><td>Spending Score</td><td>2,200</td><td>46.37</td><td>25.13</td><td>1</td><td>100</td></tr>
+      </tbody>
+    </table>
+    <div class="insight"><strong>Key takeaway:</strong> All three numeric features exhibit wide ranges with no missing values. The spending score is uniformly distributed from 1–100, while annual income is right-skewed — most customers fall below ~80,000.</div>
+  </div>
+</div>
+
+<div class="section" id="s2">
+  <div class="section-header">
+    <h2><span class="step">2.</span> Exploratory Data Analysis</h2>
+  </div>
+  <div class="section-body">
+    <p>Univariate and bivariate distributions reveal the structure of the data before any transformation. Age is roughly uniform between 18–70, income follows a right-skewed distribution, and spending score is bimodal around low (~20) and high (~75) spend levels.</p>
+    <div class="two-col">
+      <div class="figure">
+        <img src="reports/figures/before_process/distribution_age_before.png" alt="Distribution of Age">
+        <div class="caption"><strong>Figure 1:</strong> Age distribution — roughly uniform across adult range.</div>
+      </div>
+      <div class="figure">
+        <img src="reports/figures/before_process/distribution_annual_income_before.png" alt="Distribution of Annual Income">
+        <div class="caption"><strong>Figure 2:</strong> Annual income distribution — right-skewed, peak around 20,000–40,000.</div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="figure">
+        <img src="reports/figures/before_process/distribution_spending_score_before.png" alt="Distribution of Spending Score">
+        <div class="caption"><strong>Figure 3:</strong> Spending score — bimodal pattern with low and high spend clusters.</div>
+      </div>
+      <div class="figure">
+        <img src="reports/figures/before_process/gender_distribution_before.png" alt="Gender Distribution">
+        <div class="caption"><strong>Figure 4:</strong> Gender split — approximately balanced across the dataset.</div>
+      </div>
+    </div>
+    <div class="figure">
+      <img src="reports/figures/before_process/correlation_heatmap_before.png" alt="Correlation Heatmap">
+      <div class="caption"><strong>Figure 5:</strong> Correlation heatmap of numeric features.</div>
+    </div>
+    <div class="insight"><strong>Key takeaway:</strong> Annual income and spending score show low correlation, suggesting that high income does not necessarily predict high spending — a key motivation for segmentation.</div>
+  </div>
+</div>
+
+<div class="section" id="s3">
+  <div class="section-header">
+    <h2><span class="step">3.</span> Data Preprocessing</h2>
+  </div>
+  <div class="section-body">
+    <p>Data quality checks confirm the dataset is clean: no missing values, no outliers detected via IQR or z-score methods, and no duplicate rows. The only categorical feature (gender) was one-hot encoded in an experimental feature set but excluded from the final model in favor of purely behavioral features.</p>
+    <div class="two-col">
+      <div class="figure">
+        <img src="reports/figures/before_process/missing_values.png" alt="Missing Values Summary">
+        <div class="caption"><strong>Figure 6:</strong> Missing values — zero missing across all columns.</div>
+      </div>
+      <div class="figure">
+        <img src="reports/figures/before_process/duplicate_summary.png" alt="Duplicate Summary">
+        <div class="caption"><strong>Figure 7:</strong> No duplicate records detected.</div>
+      </div>
+    </div>
+    <div class="figure">
+      <img src="reports/figures/before_process/boxplots_before.png" alt="Boxplots before processing">
+      <div class="caption"><strong>Figure 8:</strong> Boxplots confirm no extreme outliers in any feature.</div>
+    </div>
+    <div class="insight"><strong>Key takeaway:</strong> The dataset requires minimal preprocessing — no imputation or outlier removal needed. Scaling is applied only for distance-based algorithms like K-Means.</div>
+  </div>
+</div>
+
+<div class="section" id="s4">
+  <div class="section-header">
+    <h2><span class="step">4.</span> Model Selection</h2>
+  </div>
+  <div class="section-body">
+    <p>We evaluated K-Means and Gaussian Mixture Models across four feature sets (<code>income_spending_only</code>, <code>age_spending_only</code>, <code>behavior_numeric</code>, <code>behavior_plus_gender</code>) and three scalers (standard, minmax, robust). The best model was selected using a combination of silhouette score and a feature-bonus heuristic favoring interpretability.</p>
+    <div class="two-col">
+      <div class="figure">
+        <img src="reports/figures/clustering/kmeans_elbow_curve.png" alt="K-Means Elbow Curve">
+        <div class="caption"><strong>Figure 9:</strong> Elbow curve for income_spending_only with RobustScaler — elbow at k=5.</div>
+      </div>
+      <div class="figure">
+        <img src="reports/figures/clustering/kmeans_silhouette_curve.png" alt="K-Means Silhouette Curve">
+        <div class="caption"><strong>Figure 10:</strong> Silhouette scores peak at k=5 (0.4702) for the selected configuration.</div>
+      </div>
+    </div>
+    <p>The top model configurations ranked by selection score:</p>
+    <table>
+      <thead>
+        <tr><th>Rank</th><th>Algorithm</th><th>Feature Set</th><th>Scaler</th><th>Clusters</th><th>Silhouette</th><th>Selected</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>K-Means</td><td>income_spending_only</td><td>robust</td><td>5</td><td>0.4702</td><td>Yes</td></tr>
+        <tr><td>2</td><td>K-Means</td><td>income_spending_only</td><td>standard</td><td>5</td><td>0.4686</td><td>No</td></tr>
+        <tr><td>3</td><td>K-Means</td><td>income_spending_only</td><td>minmax</td><td>5</td><td>0.4685</td><td>No</td></tr>
+        <tr><td>4</td><td>GMM</td><td>income_spending_only</td><td>standard</td><td>5</td><td>0.4490</td><td>No</td></tr>
+        <tr><td>5</td><td>K-Means</td><td>income_spending_only</td><td>robust</td><td>6</td><td>0.4364</td><td>No</td></tr>
+      </tbody>
+    </table>
+    <div class="figure">
+      <img src="reports/figures/clustering/agglomerative_dendrogram_sample.png" alt="Agglomerative Dendrogram">
+      <div class="caption"><strong>Figure 11:</strong> Agglomerative hierarchical clustering dendrogram (sample) confirms the 5-cluster structure.</div>
+    </div>
+    <div class="insight"><strong>Key takeaway:</strong> The <code>income_spending_only</code> feature set consistently outperforms alternatives. K-Means with <code>n_clusters=5</code> and <code>RobustScaler</code> achieves the best balance of silhouette score (0.4702) and business interpretability.</div>
+  </div>
+</div>
+
+<div class="section" id="s5">
+  <div class="section-header">
+    <h2><span class="step">5.</span> Final Model</h2>
+  </div>
+  <div class="section-body">
+    <p>The final model is <strong>K-Means</strong> trained on <strong>annual income + spending score</strong> with <strong>RobustScaler</strong> and <strong>5 clusters</strong>. Below are the cluster visualizations in income/spending space, PCA projection, and cluster centers.</p>
+    <div class="figure">
+      <img src="reports/figures/clustering/clusters_annual_income_vs_spending_score.png" alt="Clusters: Annual Income vs Spending Score">
+      <div class="caption"><strong>Figure 12:</strong> Final K-Means clusters in income–spending space with centroids marked.</div>
+    </div>
+    <div class="two-col">
+      <div class="figure">
+        <img src="reports/figures/clustering/clusters_age_vs_annual_income.png" alt="Clusters: Age vs Annual Income">
+        <div class="caption"><strong>Figure 13:</strong> Age vs income colored by cluster assignment.</div>
+      </div>
+      <div class="figure">
+        <img src="reports/figures/clustering/clusters_age_vs_spending_score.png" alt="Clusters: Age vs Spending Score">
+        <div class="caption"><strong>Figure 14:</strong> Age vs spending score — younger customers concentrate in higher spend segments.</div>
+      </div>
+    </div>
+    <div class="figure">
+      <img src="reports/figures/clustering/clusters_pca_projection.png" alt="PCA Projection of Clusters">
+      <div class="caption"><strong>Figure 15:</strong> PCA projection confirms well-separated clusters in reduced 2D space.</div>
+    </div>
+    <div class="insight"><strong>Key takeaway:</strong> The 5 clusters form clear, separable groups primarily along the spending score axis, with income providing secondary separation. The centroids reveal a "diamond" pattern: low-income low-spend, low-income high-spend, moderate-income moderate-spend, high-income low-spend, and high-income high-spend.</div>
+  </div>
+</div>
+
+<div class="section" id="s6">
+  <div class="section-header">
+    <h2><span class="step">6.</span> Cluster Profiles</h2>
+  </div>
+  <div class="section-body">
+    <p>Each cluster is profiled by its demographic averages and assigned a business-friendly segment name. The 5 segments capture distinct customer archetypes with clear behavioral differences.</p>
+    <div class="figure">
+      <img src="reports/figures/clustering/cluster_centers_original_scale.png" alt="Cluster Centers in Original Scale">
+      <div class="caption"><strong>Figure 16:</strong> Cluster centers in original scale — income and spending means per segment.</div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Cluster</th><th>Name</th><th>Count</th><th>%</th><th>Age</th><th>Income</th><th>Spending</th><th>% Female</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>0</td><td>High income, low spending</td><td>497</td><td>22.6%</td><td>49.0</td><td>91,231</td><td>16.6</td><td>51.3%</td></tr>
+        <tr><td>1</td><td>Low income, low spending</td><td>258</td><td>11.7%</td><td>42.0</td><td>25,957</td><td>22.1</td><td>56.2%</td></tr>
+        <tr><td>2</td><td>Moderate income, moderate spending</td><td>712</td><td>32.4%</td><td>38.0</td><td>53,152</td><td>47.7</td><td>53.8%</td></tr>
+        <tr><td>3</td><td>High income, high spending</td><td>242</td><td>11.0%</td><td>33.0</td><td>83,886</td><td>80.7</td><td>55.0%</td></tr>
+        <tr><td>4</td><td>Low income, high spending</td><td>491</td><td>22.3%</td><td>28.0</td><td>27,152</td><td>70.4</td><td>55.8%</td></tr>
+      </tbody>
+    </table>
+    <div class="insight"><strong>Key takeaway:</strong> Cluster 2 (moderate income, moderate spending) is the largest segment at 32.4%, while clusters 1 and 3 are the smallest (~11% each). The two "High income" segments (0 and 3) together account for 33.6% of customers but have vastly different spending behaviors.</div>
+  </div>
+</div>
+
+<div class="section" id="s7">
+  <div class="section-header">
+    <h2><span class="step">7.</span> Business Recommendations</h2>
+  </div>
+  <div class="section-body">
+    <p>Each segment requires a tailored engagement strategy. The table below summarizes recommended actions based on segment characteristics.</p>
+    <table>
+      <thead>
+        <tr><th>Segment</th><th>Description</th><th>Recommended Action</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>High income, low spending</td>
+          <td>Older affluent customers (~49 yr) with high income but very low spending scores. Likely already loyal or not engaged.</td>
+          <td>Use personalized recommendations and targeted incentives to lift conversion.</td>
+        </tr>
+        <tr>
+          <td>Low income, low spending</td>
+          <td>Middle-aged customers (~42 yr) with limited income and minimal spending. Price-sensitive segment.</td>
+          <td>Use low-cost engagement and avoid expensive acquisition-style campaigns.</td>
+        </tr>
+        <tr>
+          <td>Moderate income, moderate spending</td>
+          <td>The largest segment (~38 yr). Average on all dimensions — representative of the typical customer.</td>
+          <td>Use broad retention campaigns, seasonal offers, and monitor movement between segments.</td>
+        </tr>
+        <tr>
+          <td>High income, high spending</td>
+          <td>Young affluent customers (~33 yr) with both high income and high spending. Highest lifetime value.</td>
+          <td>Prioritize loyalty perks, premium offers, and early access campaigns.</td>
+        </tr>
+        <tr>
+          <td>Low income, high spending</td>
+          <td>Young customers (~28 yr) with limited income but high spending propensity. Likely aspirational shoppers.</td>
+          <td>Offer bundles, discounts, and value-focused retention campaigns.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="insight"><strong>Strategic priority:</strong> Focus retention efforts on Cluster 3 (High income, high spending — highest value) and Cluster 2 (largest volume). Cluster 4 (Low income, high spending) represents growth potential through value-oriented engagement.</div>
+  </div>
+</div>
+
+<div class="footer">
+  Generated from lab03-machine-learning &bull; 7 sections &bull; K-Means &bull; RobustScaler &bull; income_spending_only &bull; n_clusters=5
+</div>
+
+</div>
+</body>
+</html>
